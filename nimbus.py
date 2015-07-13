@@ -10,6 +10,7 @@ import yaml
 from slackclient import SlackClient
 
 from link_expander import expand_links
+from player_stats import player_stats
 
 
 def get_config(filename):
@@ -27,6 +28,8 @@ def process_message(text, content, sc):
     """
     if 'oc.tc/' in text:
         expand_links(text, content, sc)
+    if text.startswith('?player'):
+        player_stats(text, content, sc)
 
 
 def main(filename):
