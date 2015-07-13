@@ -130,6 +130,7 @@ def expand_links(text, content, sc):
     le = LinkExpander(text)
 
     for a in le.process_urls():
-        content.update({'type': 'message', 'text': ' ', 'attachments': json.dumps([a])})
-        sc.api_call('chat.postMessage', **content)
-        print('Expanded url')
+        if a:
+            content.update({'type': 'message', 'text': ' ', 'attachments': json.dumps([a])})
+            sc.api_call('chat.postMessage', **content)
+            print('Expanded url')
