@@ -24,7 +24,6 @@ class LinkExpander(object):
         for url in self.urls:
             if 'forums' in url or 'topics' in url:
                 yield ForumScraper(url).get_data()
-
             elif 'punishments' in url:
                 yield PunishmentScraper(url).get_data()
 
@@ -95,8 +94,36 @@ class PunishmentScraper(OCNScraper):
     """ get data from punishment page to create an expanded link """
 
     def get_data(self):
-        return  # TODO
+        soup = self.make_soup()
 
+        try:
+            pun = soup.find('section', {'class': 'punishment'})
+
+            # get values for 'active', 'automatic', 'expires', 'match' and 'server
+            # which are all inside classless h3 tags
+            bare_h3s = pun.find_all('h3', {'class': None})
+            d = {h3.small.text: h3.contents[2].strip() for h3 in bare_h3s}
+
+            d['punishee'] = pun.find('h1', {'class': 'punished'}).a.text
+            d['punisher'] = pun.find('h3', {'class': 'punisher'}).a.text
+            d['when'] = pun.find('small', {'rel': 'tooltip'})['title']
+            d['reason'] = pun.find('h3', {'class': 'reason'}).contents[2].strip()
+            d['pun_type'] = pun.find('h3', {'class': 'type'}).contents[2].strip()
+        except (AttributeError, IndexError) as e:
+            print("Can't read html: %s" % e)
+            return
+
+        return self.format_data(d)
+
+    def format_data(self, d):
+        """ generate slack message attachment """
+        a = {}
+        verb = 'punished' if d['pun_type'] == 'Ban' else 'warned'
+        a['fallback'] = '%s %s by %s with reason "%s"' % \
+                        (d['punishee'], verb, d['punisher'], d['reason'])
+
+        a['text'] = a['fallback']
+        return a
 
 def expand_links(text, content, sc):
     """ expand links from oc.tc """
