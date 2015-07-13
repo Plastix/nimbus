@@ -11,6 +11,7 @@ from slackclient import SlackClient
 
 from link_expander import expand_links
 from player_stats import player_stats
+from mcstatus import mcstatus
 
 
 def get_config(filename):
@@ -30,6 +31,9 @@ def process_message(text, content, sc):
         expand_links(text, content, sc)
     if text.startswith('?player'):
         player_stats(text, content, sc)
+    if text == '?mcstatus':
+        mcstatus(text, content, sc)
+
 
 
 def main(filename):
