@@ -4,13 +4,16 @@
 import json
 import abc
 import re
-
+import logging
 import requests
 from bs4 import BeautifulSoup
+from plugin import Plugin
 
+log = logging.getLogger()
 
 class LinkExpander(object):
     """ returns expanded url previews from text containing oc.tc urls """
+
     def __init__(self, text):
         self.urls = self.get_urls(text)
 
@@ -39,7 +42,7 @@ class OCNScraper(object):
     def make_soup(self):
         r = requests.get(self.url)
         if r.status_code != 200:
-            print("Can't open url.")
+            log.warning("Can't open url.")
             return
         return BeautifulSoup(r.content)
 
@@ -77,7 +80,7 @@ class ForumScraper(OCNScraper):
             d['fallback'] = '%s: %s' % (d['author_name'], self.decratain(text, 40))
 
         except (AttributeError, IndexError) as e:
-            print("Can't read html: %s" % e)
+            log.warning("Can't read html: %s" % e)
             return
 
         return d
@@ -110,7 +113,7 @@ class PunishmentScraper(OCNScraper):
             d['reason'] = pun.find('h3', {'class': 'reason'}).contents[2].strip()
             d['pun_type'] = pun.find('h3', {'class': 'type'}).contents[2].strip()
         except (AttributeError, IndexError) as e:
-            print("Can't read html: %s" % e)
+            log.warning("Can't read html: %s" % e)
             return
 
         return self.format_data(d)
@@ -125,18 +128,26 @@ class PunishmentScraper(OCNScraper):
         a = {}
         verb = 'punished' if d['pun_type'] == 'Ban' else 'warned'
         a['fallback'] = '%s %s by %s with reason "_%s_" (%s)' % \
-                        (self.get_slack_link(d['punishee']), verb, self.get_slack_link(d['punisher']), d['reason'], d['when'])
+                        (self.get_slack_link(d['punishee']), verb, self.get_slack_link(d['punisher']), d['reason'],
+                         d['when'])
 
         a['text'] = a['fallback']
         a['mrkdwn_in'] = ['text']
         return a
 
-def expand_links(text, content, sc):
-    """ expand links from oc.tc """
-    le = LinkExpander(text)
 
-    for a in le.process_urls():
-        if a:
-            content.update({'type': 'message', 'text': ' ', 'attachments': json.dumps([a])})
-            sc.api_call('chat.postMessage', **content)
-            print('Expanded url')
+class OCNLinkExpander(Plugin):
+    """
+    Expands oc.tc links
+    """
+
+    def on_event(self, bot, event, response):
+        if not event.get('attachments', ''):
+            if 'text' in event:
+                text = event['text']
+                if 'oc.tc/' in text:
+                    le = LinkExpander(text)
+                    for a in le.process_urls():
+                        if a:
+                            response.update(attachments=json.dumps([a]))
+                    bot.sc.api_call('chat.postMessage', **response)

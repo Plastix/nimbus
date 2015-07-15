@@ -5,3 +5,4 @@ token: xoxp-foo-blah-etc  # token from https://api.slack.com/web
 username: nimbus          # name of bot
 icon_emoji: cloud         # bot icon
 polling_interval: 1       # how often (in seconds) to check for new events
+command_prefix: ! 		  # commands are prefixed with this character (ie !help)

@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import requests
-import re
 import json
 from bs4 import BeautifulSoup
+from utils import valid_minecraft_username
+from plugin import CommandPlugin
 
 
 def get_player_link(player_name):
@@ -22,9 +23,15 @@ def scrape_stats(player_name):
     https://github.com/McSpider/Overcast-IRC-Bot/blob/master/_functions/player.py
     """
     result = {}
-    r = requests.get(get_player_link(player_name))
     result['name'] = player_name
     result['error'] = ''
+
+    if not valid_minecraft_username(player_name):
+        result['error'] = ':warning: Invalid player name!'
+        return build_slack_attachment(result)
+
+    r = requests.get(get_player_link(player_name))
+
     if r.status_code != requests.codes.ok:
         if r.status_code == 404:
             result['error'] = '404 - User not found'
@@ -65,7 +72,8 @@ def scrape_stats(player_name):
         else:
             result['error'] = 'Invalid user!'
 
-    return result
+    return build_slack_attachment(result)
+
 
 def build_slack_attachment(stats):
     """
@@ -84,25 +92,31 @@ def build_slack_attachment(stats):
         message['author_link'] = get_player_link(name)
         message['author_icon'] = get_avatar_link(name)
 
-        text = 'Kills: `%s` Deaths: `%s` KD: `%s` KK: `%s`\nWools: `%s` Cores: `%s` Monuments: `%s`\nFriends: `%s` Joins: `%s` Raindrops: `%s`'% (stats['kills'],
-            stats['deaths'],stats['kd_ratio'],stats['kk_ratio'], stats['wools'], stats['cores'], stats['monuments'], stats['friends'], stats['joins'], stats['raindrops'])
+        text = 'Kills: `%s` Deaths: `%s` KD: `%s` KK: `%s`\nWools: `%s` Cores: `%s` Monuments: `%s`\nFriends: `%s` Joins: `%s` Raindrops: `%s`' % (
+            stats['kills'],
+            stats['deaths'], stats['kd_ratio'], stats['kk_ratio'], stats['wools'], stats['cores'], stats['monuments'],
+            stats['friends'], stats['joins'], stats['raindrops'])
         message['text'] = text
         message['mrkdwn_in'] = ['text']
-        
+
     return message
 
 
-def player_stats(text, content, sc):
-    """ Returns Overcast Network stats for the specified player 
-        Expected text format ?player <Player name>
+class PlayerStats(CommandPlugin):
     """
-    li = text.split(' ')
-    player_name = li[1]
-    stats = scrape_stats(player_name)
-    message = build_slack_attachment(stats)
+    Scrapes Overcast Network player stats
+    """
 
-    content.update({'type': 'message', 'text': ' ', 'attachments': json.dumps([message])})
-    sc.api_call('chat.postMessage', **content)
-    print('Getting player stats for %s' % player_name)
+    def __init__(self):
+        CommandPlugin.__init__(self)
+        self.triggers = ['player', 'stats']
+        self.short_help = 'Lookup Overcast Network player stats'
+        self.help = self.short_help
+        self.help_example = ['!player Plastix', '!player bcbwilla']
 
-      
+    def on_command(self, bot, event, response):
+        args = event['text']
+        if args:
+            message = scrape_stats(args)
+            response.update(attachments=json.dumps([message]))
+            bot.sc.api_call('chat.postMessage', **response)
