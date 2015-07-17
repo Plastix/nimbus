@@ -37,14 +37,17 @@ class Nimbus(object):
         """
         Processes an event and invokes plugins
         """
+        # Copy the event in order to prevent changes from propagating to other plugins
+        # Some plugins (like CommandPlugins) decide to edit the event in-place
+        event_copy = dict(event)
 
-        for plugin in filter(lambda p: p.event_type == event['type'], self.plugins):
+        for plugin in filter(lambda p: p.event_type == event_copy['type'], self.plugins):
             # JSON Response for all API calls
             response = dict(username=self.username, icon_emoji=self.icon_emoji)
-            if 'channel' in event:
+            if 'channel' in event_copy:
                 response.update({'channel': event['channel']})
 
-            plugin.on_event(self, event, response)
+            plugin.on_event(self, event_copy, response)
 
     def run(self):
         """
@@ -70,7 +73,7 @@ class Nimbus(object):
 
         # Instantiate class and add to plugins list
         self.plugins.append(plugin())
-        log.info('Successfully registered plugin \'%s\'' % (plugin.__name__))
+        log.info('Successfully registered plugin \'%s\'' % plugin.__name__)
 
     def load_plugins(self):
         """
@@ -112,7 +115,7 @@ class Nimbus(object):
         Bot constructor
         """
         log.info("Initializing Nimbus instance...")
-        config = self.get_config(config_filename)
+        config = self.get_config(config_name)
 
         self.username = config.get('username', 'nimbus')
         self.icon_emoji = ':' + config.get('icon_emoji', 'cloud') + ':'
