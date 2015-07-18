@@ -58,7 +58,7 @@ class Nimbus(object):
             events = self.sc.rtm_read()
             for event in events:
                 # Don't listen to the bot's own messages or other bot messages
-                if event.get('subtype', '') != 'bot_message':
+                if event.get('subtype') != 'bot_message':
                     self.process_event(event)
 
             time.sleep(self.polling_interval)

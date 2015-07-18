@@ -142,7 +142,7 @@ class OCNLinkExpander(Plugin):
     """
 
     def on_event(self, bot, event, response):
-        if not event.get('attachments', ''):
+        if not event.get('attachments'):
             if 'text' in event:
                 text = event['text']
                 if 'oc.tc/' in text:
