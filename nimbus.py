@@ -37,17 +37,16 @@ class Nimbus(object):
         """
         Processes an event and invokes plugins
         """
-        # Copy the event in order to prevent changes from propagating to other plugins
-        # Some plugins (like CommandPlugins) decide to edit the event in-place
-        event_copy = dict(event)
 
-        for plugin in filter(lambda p: p.event_type == event_copy['type'], self.plugins):
+        for plugin in filter(lambda p: p.event_type == event['type'], self.plugins):
             # JSON Response for all API calls
             response = dict(username=self.username, icon_emoji=self.icon_emoji)
-            if 'channel' in event_copy:
+            if 'channel' in event:
                 response.update({'channel': event['channel']})
 
-            plugin.on_event(self, event_copy, response)
+            # Copy the event in order to prevent changes from propagating to other plugins
+            # Some plugins (like CommandPlugins) decide to edit the event in-place
+            plugin.on_event(self, dict(event), response)
 
     def run(self):
         """
