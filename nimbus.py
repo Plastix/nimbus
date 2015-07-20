@@ -26,6 +26,34 @@ class Nimbus(object):
     Main bot class
     """
 
+    def __init__(self, config_name):
+        """
+        Bot constructor
+        """
+        log.info("Initializing Nimbus instance...")
+        config = self.get_config(config_name)
+
+        self.username = config.get('username', 'nimbus')
+        self.icon_emoji = ':' + config.get('icon_emoji', 'cloud') + ':'
+        self.polling_interval = config.get('polling_interval', 1)
+        self.command_prefix = config.get('command_prefix', '!')
+        self.debug_mode = config.get('debug_mode', False)
+        self.plugins = []
+
+        self.token = config.get('token')
+        if not self.token:
+            raise SystemExit('Need an authorization token.')
+
+        self.sc = SlackClient(self.token)
+        if not self.sc.rtm_connect():
+            raise SystemExit("Can't connect to Slack.")
+        log.info('Successfully authenticated with Slack!')
+
+        if self.debug_mode:
+            log.info('Debug mode is enabled!')
+
+        self.load_plugins()
+
     def get_config(self, filename):
         """ Gets the bot config file """
         try:
@@ -74,7 +102,7 @@ class Nimbus(object):
 
     def register_plugin(self, plugin):
         """
-        Registers the specified plugin with the bot 
+        Registers the specified plugin with the bot
         """
         # Instantiate class and add to plugins list
         self.plugins.append(plugin())
@@ -118,34 +146,6 @@ class Nimbus(object):
             for trig in plugin.triggers:
                 if trigger == trig:
                     return plugin
-
-    def __init__(self, config_name):
-        """
-        Bot constructor
-        """
-        log.info("Initializing Nimbus instance...")
-        config = self.get_config(config_name)
-
-        self.username = config.get('username', 'nimbus')
-        self.icon_emoji = ':' + config.get('icon_emoji', 'cloud') + ':'
-        self.polling_interval = config.get('polling_interval', 1)
-        self.command_prefix = config.get('command_prefix', '!')
-        self.debug_mode = config.get('debug_mode', False)
-        self.plugins = []
-
-        self.token = config.get('token')
-        if not self.token:
-            raise SystemExit('Need an authorization token.')
-
-        self.sc = SlackClient(self.token)
-        if not self.sc.rtm_connect():
-            raise SystemExit("Can't connect to Slack.")
-        log.info('Successfully authenticated with Slack!')
-
-        if self.debug_mode:
-            log.info('Debug mode is enabled!')
-
-        self.load_plugins()
 
 
 def sigint_handler(signum, frame):
