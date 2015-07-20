@@ -4,7 +4,7 @@
 import requests
 import json
 from bs4 import BeautifulSoup
-from utils import valid_minecraft_username
+from utils import valid_minecraft_username, get_player_link, get_avatar_link
 from plugin import CommandPlugin
 
 
@@ -28,14 +28,6 @@ class PlayerStats(CommandPlugin):
             bot.sc.api_call('chat.postMessage', **response)
 
     @staticmethod
-    def get_player_link(player_name):
-        return "http://oc.tc/" + str(player_name)
-
-    @staticmethod
-    def get_avatar_link(player_name):
-        return 'https://avatar.oc.tc/' + str(player_name) + '/16@2x.png'
-
-    @staticmethod
     def scrape_stats(player_name):
         """
         Scrapes Overcast Network Player Stats
@@ -51,7 +43,7 @@ class PlayerStats(CommandPlugin):
             result['error'] = ':warning: Invalid player name!'
             return PlayerStats.build_slack_attachment(result)
 
-        r = requests.get(PlayerStats.get_player_link(player_name))
+        r = requests.get(get_player_link(player_name))
 
         if r.status_code != requests.codes.ok:
             if r.status_code == 404:
@@ -110,8 +102,8 @@ class PlayerStats(CommandPlugin):
             message['text'] = error
         else:
             message['color'] = 'good'
-            message['author_link'] = PlayerStats.get_player_link(name)
-            message['author_icon'] = PlayerStats.get_avatar_link(name)
+            message['author_link'] = get_player_link(name)
+            message['author_icon'] = get_avatar_link(name)
 
             text = 'Kills: `%s` Deaths: `%s` KD: `%s` KK: `%s`\nWools: `%s` Cores: `%s` Monuments: `%s`\nFriends: `%s` Joins: `%s` Raindrops: `%s`' % (
                 stats['kills'],
