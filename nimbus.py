@@ -11,6 +11,7 @@ import signal
 import yaml
 import os
 import inspect
+import importlib
 from slackclient import SlackClient
 from plugin import Plugin, CommandPlugin
 
@@ -91,7 +92,7 @@ class Nimbus(object):
             module_name, extension = os.path.splitext(f)
             if extension == ".py":
                 module_path = '%s.%s' % (plugin_directory, module_name)
-                imported = __import__(module_path, fromlist=[module_name])
+                imported = importlib.import_module(module_path)
 
                 # Find all the Plugin classes in the module
                 # This means you could have multiple plugins per module
@@ -102,6 +103,7 @@ class Nimbus(object):
                 for name, klass in classes:
                     self.register_plugin(klass)
                     num_plugins += 1
+
         log.info('Loaded %s plugins!' % num_plugins)
 
     def get_command(self, trigger):
