@@ -42,7 +42,12 @@ class MCNameHistory(CommandPlugin):
             log.warning("Can't get lookup Minecraft uuid for username %s!" % username)
             return
 
-        uuid = r.json()[0]['id']
+        response = r.json()
+
+        if not response:
+            return
+
+        uuid = response[0]['id']
         name_history_link = 'https://api.mojang.com/user/profiles/%s/names' % uuid
 
         r = requests.get(name_history_link)
