@@ -17,7 +17,7 @@ class MCNameHistory(CommandPlugin):
     def __init__(self):
         CommandPlugin.__init__(self)
         self.triggers = ['mchistory', 'mchis']
-        self.short_help = 'Prints out username history of a Minecraft username',
+        self.short_help = 'Prints out username history of a Minecraft username'
         self.help = self.short_help
         self.help_example = ['!mchistory Apple', '!mchis Martin']
 
