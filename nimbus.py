@@ -36,6 +36,9 @@ class Nimbus(object):
         """
         Processes an event and invokes plugins
         """
+        # Log processed event if in debug mode
+        if self.debug_mode:
+            log.info(event)
 
         for plugin in filter(lambda p: p.event_type == event['type'], self.plugins):
             # JSON Response for all API calls
@@ -125,6 +128,7 @@ class Nimbus(object):
         self.icon_emoji = ':' + config.get('icon_emoji', 'cloud') + ':'
         self.polling_interval = config.get('polling_interval', 1)
         self.command_prefix = config.get('command_prefix', '!')
+        self.debug_mode = config.get('debug_mode', False)
         self.plugins = []
 
         self.token = config.get('token')
@@ -135,6 +139,9 @@ class Nimbus(object):
         if not self.sc.rtm_connect():
             raise SystemExit("Can't connect to Slack.")
         log.info('Successfully authenticated with Slack!')
+
+        if self.debug_mode:
+            log.info('Debug mode is enabled!')
 
         self.load_plugins()
 
