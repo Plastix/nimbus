@@ -73,10 +73,6 @@ class Nimbus(object):
         """
         Registers the specified plugin with the bot 
         """
-        if not type(plugin) is type or not issubclass(plugin, Plugin):
-            log.warning('Module %s not subclass of Plugin! Skipping...' % plugin.__name__)
-            return
-
         # Instantiate class and add to plugins list
         self.plugins.append(plugin())
         log.info('Successfully registered plugin \'%s\'' % plugin.__name__)
@@ -87,6 +83,7 @@ class Nimbus(object):
         """
         log.info('Registering plugins...')
         plugin_directory = 'plugins'  # TODO Config setting?
+        num_plugins = 0
         # Loop through files in plugin directory
         for f in os.listdir(plugin_directory):
             module_name, extension = os.path.splitext(f)
@@ -95,13 +92,15 @@ class Nimbus(object):
                 imported = __import__(module_path, fromlist=[module_name])
 
                 # Find all the Plugin classes in the module
-                # This means you could have mltiple plugins per module
+                # This means you could have multiple plugins per module
                 class_filter = lambda c: inspect.isclass(c) and c.__module__ == module_path and issubclass(c, Plugin)
                 classes = inspect.getmembers(imported, class_filter)
 
                 # Register all found plugin classes
                 for name, klass in classes:
                     self.register_plugin(klass)
+                    num_plugins += 1
+        log.info('Loaded %s plugins!' % num_plugins)
 
     def get_command(self, trigger):
         """
