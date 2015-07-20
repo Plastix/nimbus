@@ -7,7 +7,6 @@ import sys
 import time
 import logging
 import logging.config
-import json
 import signal
 import yaml
 import os

@@ -1,8 +1,7 @@
-# nimbus
+# Nimbus
+Little Slack bot for Overcast Network's slack channel
 
-Little slack bot for Overcast Network's slack channel
-
-# running
+## Running
 1. `git clone https://github.com/bcbwilla/nimbus`
 2. `cd nimbus/`
 3. `pip install -r requirements.txt` (preferably in a 
@@ -10,20 +9,21 @@ Little slack bot for Overcast Network's slack channel
 3. Put your [authentication token](https://api.slack.com/web) in the config file (an example config is [example_config.yaml](example_config.yaml))
 4. `python nimbus.py config.yaml`
 
-# contributing
-Feel free to add functionality that you think would be useful!
-
-## guidelines
+## Contributing
+- Feel free to add functionality that you think would be useful!
 - Follow [PEP8](https://www.python.org/dev/peps/pep-0008/) style guidelines (most importantly, 
 `underscore_names` for things that aren't classes)
-- For now, pack the new functionality neatly (like in a function, or somewhere else if it is more
-complicated (e.g. [link_expander.py](link_expander.py)) and call it from the `process_message` function
-- Probably should discuss the functionality in Slack or via issues here to determine if it's
-a good idea before spending time on it
 
-# suggestions
-- pm me on Slack or create an issue here
+## Plugins & Commands
+- To add a new plugin, create a new python module in `/plugins/` and include a top level class that extends either
+`Plugin` or `CommandPlugin`. The bot will automatically load the plugin when it starts up
+- Read the documentation in [Plugin.py](https://github.com/bcbwilla/nimbus/blob/master/plugin.py) to learn about the structure
+of Nimbus plugins
+- [Echo.py](https://github.com/bcbwilla/nimbus/blob/master/plugins/echo.py) is a simple example plugin
 
-# license
-[MIT](LICENSE.txt)
+## Suggestions & Bugs
+- Create an issue on Github
+
+## License
+[MIT License](LICENSE.txt)
 
