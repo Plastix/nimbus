@@ -30,7 +30,7 @@ class Plugin(object):
         # Syntax example that shows up on '!help plugin'
         self.help_example = []
 
-        # Slack even type to listen to. Defaults to regular messages
+        # Slack event type to listen to. Defaults to regular messages
         self.event_type = 'message'
 
         # Generic Plugins don't show up in '!help'
