@@ -8,7 +8,7 @@ import logging
 Plugin Definitions
 """
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 class Plugin(object):

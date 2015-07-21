@@ -9,7 +9,8 @@ import requests
 from bs4 import BeautifulSoup
 from plugin import Plugin
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
+
 
 class LinkExpander(object):
     """ returns expanded url previews from text containing oc.tc urls """
