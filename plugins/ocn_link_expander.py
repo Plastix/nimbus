@@ -42,7 +42,7 @@ class OCNScraper(object):
 
     def make_soup(self):
         r = requests.get(self.url)
-        if r.status_code != 200:
+        if r.status_code != requests.codes.ok:
             log.warning("Can't open url.")
             return
         return BeautifulSoup(r.content)
@@ -134,6 +134,7 @@ class PunishmentScraper(OCNScraper):
 
         a['text'] = a['fallback']
         a['mrkdwn_in'] = ['text']
+        a['author_name'] = 'Overcast Network Punishment'
         return a
 
 
@@ -144,11 +145,12 @@ class OCNLinkExpander(Plugin):
 
     def on_event(self, bot, event, response):
         if not event.get('attachments'):
-            if 'text' in event:
-                text = event['text']
-                if 'oc.tc/' in text:
-                    le = LinkExpander(text)
-                    for a in le.process_urls():
-                        if a:
-                            response.update(attachments=json.dumps([a]))
-                    bot.sc.api_call('chat.postMessage', **response)
+            text = event['text']
+            if 'oc.tc/' in text:
+                le = LinkExpander(text)
+                for a in le.process_urls():
+                    if a:
+                        # Copy response because each URL is its own message
+                        resp = dict(response)
+                        resp.update(attachments=json.dumps([a]))
+                        bot.sc.api_call('chat.postMessage', **resp)
