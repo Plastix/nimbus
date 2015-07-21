@@ -8,12 +8,17 @@ import time
 import logging
 import logging.config
 import signal
+from requests.packages import urllib3
 import yaml
 import os
 import inspect
 import importlib
 from slackclient import SlackClient
 from plugin import Plugin, CommandPlugin
+
+# Disable Requests's HTTPS warnings
+# We're only scraping so this is ok
+urllib3.disable_warnings()
 
 # Log to file and SDOUT
 logging.config.fileConfig('logging.conf')
