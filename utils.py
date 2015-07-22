@@ -59,10 +59,10 @@ def strip_url_formatting(text):
     return text
 
 
-def get_player_profile(username):
+def get_player_uuid_response(username):
     """
-    Get's the json response for Mojangs's profile API for a given username
-    Returns resposne if found, else None
+    Get's the json response for Mojangs's uuid API for a given username
+    Returns response if found, else None
     """
     # Don't even bother checking API for invalid names
     if not valid_minecraft_username(username):
@@ -87,6 +87,24 @@ def get_player_uuid(username):
     Returns a string of the UUID if found, or None if player doesn't exist
     """
 
-    response = get_player_profile(username)
+    response = get_player_uuid_response(username)
     if response:
         return str(response[0]['id'])
+
+
+def get_player_profile(username):
+    """
+    Returns the json response for Mojang's profile API for the given username
+    Returns resonse, else None
+    """
+    uuid = get_player_uuid(username)
+    if not uuid:
+        return
+
+    profile_url = 'https://sessionserver.mojang.com/session/minecraft/profile/%s' % uuid
+    r = requests.get(profile_url)
+
+    if r.status_code != requests.codes.ok:
+        return
+
+    return r.json()

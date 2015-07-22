@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from utils import valid_minecraft_username, get_player_profile
+from utils import valid_minecraft_username, get_player_uuid_response
 from plugin import CommandPlugin
 import logging
 
@@ -32,7 +32,7 @@ class MCName(CommandPlugin):
         if not valid_minecraft_username(name):
             return MCName.build_slack_attachment(name, None, valid_name=False)
 
-        response = get_player_profile(name)
+        response = get_player_uuid_response(name)
         return MCName.build_slack_attachment(name, response)
 
     @staticmethod
