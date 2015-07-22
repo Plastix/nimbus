@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import requests
 import json
 from utils import valid_minecraft_username, get_player_profile
 from plugin import CommandPlugin
@@ -12,8 +11,6 @@ log = logging.getLogger(__name__)
 
 class MCName(CommandPlugin):
     """Checks if a Minecraft username is registered"""
-
-    mojang_profile_link = 'https://api.mojang.com/profiles/minecraft'
 
     def __init__(self):
         CommandPlugin.__init__(self)

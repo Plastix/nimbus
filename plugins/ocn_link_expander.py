@@ -18,7 +18,8 @@ class LinkExpander(object):
     def __init__(self, text):
         self.urls = self.get_urls(text)
 
-    def get_urls(self, text):
+    @staticmethod
+    def get_urls(text):
         """ get urls from message text """
         m = 'oc.tc/'
         urls = filter(lambda x: m in x and not x.endswith('s/'), text.split())
@@ -86,7 +87,8 @@ class ForumScraper(OCNScraper):
 
         return d
 
-    def decratain(self, text, limit=70):
+    @staticmethod
+    def decratain(text, limit=70):
         """ trim unfurled message to a reasonable length (<3 crats ¯\_(ツ)_/¯) """
         if len(text) >= limit:
             return ' '.join(text.split()[:-1]) + ' ...'

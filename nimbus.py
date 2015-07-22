@@ -59,7 +59,8 @@ class Nimbus(object):
 
         self.load_plugins()
 
-    def get_config(self, filename):
+    @staticmethod
+    def get_config(filename):
         """ Gets the bot config file """
         try:
             return yaml.safe_load(file(filename))

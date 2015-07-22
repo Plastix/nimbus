@@ -27,11 +27,8 @@ class MojangStatus(CommandPlugin):
 
     @staticmethod
     def build_slack_attachment(data):
-        response = {}
-        response['title'] = 'Mojang Status Summary'
-        response['title_link'] = 'https://help.mojang.com/'
-        response['text'] = ''
-        response['mrkdwn_in'] = ['text']
+        response = {'title': 'Mojang Status Summary', 'title_link': 'https://help.mojang.com/', 'text': '',
+                    'mrkdwn_in': ['text']}
 
         for service in data:
             service_name = next(iter(service.keys()))
