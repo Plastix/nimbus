@@ -3,7 +3,7 @@
 
 import requests
 import json
-from utils import valid_minecraft_username
+from utils import valid_minecraft_username, get_player_profile
 from plugin import CommandPlugin
 import logging
 
@@ -31,18 +31,12 @@ class MCName(CommandPlugin):
 
     @staticmethod
     def lookup_username(name):
+
         if not valid_minecraft_username(name):
             return MCName.build_slack_attachment(name, None, valid_name=False)
 
-        payload = json.dumps(name)
-        header = {'Content-type': 'application/json'}
-        r = requests.post(MCName.mojang_profile_link, headers=header, data=payload)
-
-        if r.status_code != requests.codes.ok:
-            log.warning("Can't get lookup Minecraft username %s!" % name)
-            return
-        else:
-            return MCName.build_slack_attachment(name, r.json())
+        response = get_player_profile(name)
+        return MCName.build_slack_attachment(name, response)
 
     @staticmethod
     def build_slack_attachment(name, response, valid_name=True):

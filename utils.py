@@ -1,5 +1,10 @@
 from datetime import date
+import json
 import re
+import requests
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def valid_minecraft_username(name):
@@ -52,3 +57,36 @@ def strip_url_formatting(text):
                     # Replace the text sequence with label of URL only
                     text = text.replace('<%s>' % sequence, parts[1])
     return text
+
+
+def get_player_profile(username):
+    """
+    Get's the json response for Mojangs's profile API for a given username
+    Returns resposne if found, else None
+    """
+    # Don't even bother checking API for invalid names
+    if not valid_minecraft_username(username):
+        return
+
+    profile_link = 'https://api.mojang.com/profiles/minecraft'
+    payload = json.dumps(username)
+
+    header = {'Content-type': 'application/json'}
+    r = requests.post(profile_link, headers=header, data=payload)
+
+    if r.status_code != requests.codes.ok:
+        log.warning("Can't get lookup Minecraft profile for name %s!" % username)
+        return
+
+    return r.json()
+
+
+def get_player_uuid(username):
+    """
+    Lookups the UUID for a Minecraft username using Mojang's profile API
+    Returns a string of the UUID if found, or None if player doesn't exist
+    """
+
+    response = get_player_profile(username)
+    if response:
+        return str(response[0]['id'])

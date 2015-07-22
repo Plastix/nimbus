@@ -1,5 +1,5 @@
 from plugin import CommandPlugin
-from utils import valid_minecraft_username, timestamp_to_date, get_avatar_link
+from utils import timestamp_to_date, get_avatar_link, get_player_uuid
 import json
 import requests
 import logging
@@ -11,8 +11,6 @@ class MCNameHistory(CommandPlugin):
     """
     Gets the username history for a Minecraft user
     """
-
-    profile_link = 'https://api.mojang.com/profiles/minecraft'
 
     def __init__(self):
         CommandPlugin.__init__(self)
@@ -31,27 +29,12 @@ class MCNameHistory(CommandPlugin):
     @staticmethod
     def get_name_history(username):
 
-        if not valid_minecraft_username(username):
+        uuid = get_player_uuid(username)
+        if not uuid:
             return
 
-        payload = json.dumps(username)
-        header = {'Content-type': 'application/json'}
-        r = requests.post(MCNameHistory.profile_link, headers=header, data=payload)
-
-        if r.status_code != requests.codes.ok:
-            log.warning("Can't get lookup Minecraft uuid for username %s!" % username)
-            return
-
-        response = r.json()
-
-        if not response:
-            return
-
-        uuid = response[0]['id']
         name_history_link = 'https://api.mojang.com/user/profiles/%s/names' % uuid
-
         r = requests.get(name_history_link)
-
         if r.status_code != requests.codes.ok:
             log.warning("Can't get lookup Minecraft name history for uuid %s!" % uuid)
             return
