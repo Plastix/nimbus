@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import requests
 import json
+
+import requests
+
 from plugin import CommandPlugin
 
 
@@ -11,6 +13,14 @@ class MojangStatus(CommandPlugin):
     Prints the status of Mojang's services
     """
     mojang_status_link = 'http://status.mojang.com/check'
+
+    server_name = {
+        'auth.mojang.com': 'Login',
+        'session.minecraft.net': 'Session',
+        'minecraft.net': 'Website',
+        'textures.minecraft.net': 'Textures',
+        'skins.minecraft.net': 'Skins'
+    }
 
     status = {
         'green': ':white_check_mark:',
@@ -28,15 +38,21 @@ class MojangStatus(CommandPlugin):
     @staticmethod
     def build_slack_attachment(data):
         response = {
-            'text': '*<https://help.mojang.com/|Mojang Status Summary>*\n',
+            'title': 'Mojang Status Summary',
+            'title_link': 'https://help.mojang.com/',
             'mrkdwn_in': ['text']
         }
 
+        formatted = list()
         for service in data:
-            service_name = next(iter(service.keys()))
-            color = service[service_name]
-            stat = MojangStatus.status.get(color, ':question:')
-            response['text'] += '%s *%s*\n' % (stat, service_name)
+            service_link = next(iter(service.keys()))
+
+            if service_link in MojangStatus.server_name:
+                color = service[service_link]
+                stat = MojangStatus.status.get(color, ':question:')
+                formatted.append('%s *<http://%s|%s>*' % (stat, service_link, MojangStatus.server_name[service_link]))
+
+        response.update(text=' - '.join(formatted))
 
         return response
 
@@ -53,5 +69,5 @@ class MojangStatus(CommandPlugin):
             return MojangStatus.build_slack_attachment(status)
 
     def on_command(self, bot, event, response):
-        response.update(MojangStatus.get_mojang_status())
+        response.update(attachments=json.dumps([MojangStatus.get_mojang_status()]))
         bot.sc.api_call('chat.postMessage', **response)
