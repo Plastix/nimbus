@@ -27,8 +27,10 @@ class MojangStatus(CommandPlugin):
 
     @staticmethod
     def build_slack_attachment(data):
-        response = {'title': 'Mojang Status Summary', 'title_link': 'https://help.mojang.com/', 'text': '',
-                    'mrkdwn_in': ['text']}
+        response = {
+            'text': '*<https://help.mojang.com/|Mojang Status Summary>*\n',
+            'mrkdwn_in': ['text']
+        }
 
         for service in data:
             service_name = next(iter(service.keys()))
@@ -51,5 +53,5 @@ class MojangStatus(CommandPlugin):
             return MojangStatus.build_slack_attachment(status)
 
     def on_command(self, bot, event, response):
-        response.update(attachments=json.dumps([MojangStatus.get_mojang_status()]))
+        response.update(MojangStatus.get_mojang_status())
         bot.sc.api_call('chat.postMessage', **response)
