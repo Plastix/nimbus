@@ -43,6 +43,7 @@ class Nimbus(object):
         self.polling_interval = config.get('polling_interval', 1)
         self.command_prefix = config.get('command_prefix', '!')
         self.debug_mode = config.get('debug_mode', False)
+        self.start_time = time.time()
         self.plugins = []
 
         self.token = config.get('token')
