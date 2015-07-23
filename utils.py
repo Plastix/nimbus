@@ -44,6 +44,7 @@ def strip_url_formatting(text):
     to return the raw input.
 
     An example slack message '<http://www.google.com|www.google.com>' becomes 'www.google.com'
+    If there is no label: '<http://oc.tc>' becomes 'http://oc.tc'
     Works with multiple urls per message!
     """
 
@@ -51,11 +52,16 @@ def strip_url_formatting(text):
     for sequence in re.findall(r'<(.*?)>', text):
         # Only look for Slack URL formats, not channels, users, or special commands
         if not sequence.startswith(('#C', '@U', '!')):
+            to_replace = '<%s>' % sequence
             if '|' in sequence:
                 parts = sequence.split('|')
                 if len(parts) > 1:
                     # Replace the text sequence with label of URL only
-                    text = text.replace('<%s>' % sequence, parts[1])
+                    text = text.replace(to_replace, parts[1])
+            else:
+                # If no | replace with sequence to strip < >
+                text = text.replace(to_replace, sequence)
+
     return text
 
 
