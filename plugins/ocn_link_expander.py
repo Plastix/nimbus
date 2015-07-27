@@ -8,6 +8,7 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 from plugin import Plugin
+from utils import get_urls
 
 log = logging.getLogger(__name__)
 
@@ -22,8 +23,7 @@ class LinkExpander(object):
     def get_urls(text):
         """ get urls from message text """
         m = 'oc.tc/'
-        urls = filter(lambda x: m in x and not x.endswith('s/'), text.split())
-        return [url.strip('<').strip('>') for url in urls]
+        return filter(lambda x: m in x and not x.endswith('s/'), get_urls(text))
 
     def process_urls(self):
         for url in self.urls:

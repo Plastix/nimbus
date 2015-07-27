@@ -38,6 +38,28 @@ def get_player_link(player_name):
     return 'http://oc.tc/%s' % str(player_name)
 
 
+def get_urls(text):
+    """
+    Gets the URLS in a Slack message text.
+    Returns a list of URL Strings
+    """
+    urls = list()
+    # Find all sequences matching <foo|bar>
+    for sequence in re.findall(r'<(.*?)>', text):
+        # Only look for Slack URL formats, not channels, users, or special commands
+        if not sequence.startswith(('#C', '@U', '!')):
+            url = sequence
+            if '|' in sequence:
+                parts = sequence.split('|')
+                if len(parts) > 1:
+                    # If there is a label, URL is before label
+                    url = parts[0]
+
+            urls.append(url)
+
+    return urls
+
+
 def strip_url_formatting(text):
     """
     Slack does URL parsing to include labels in URLs. This methods accepts the parsed input and strips the URL formatting
