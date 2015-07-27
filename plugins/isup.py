@@ -1,5 +1,5 @@
 import json
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
 import requests
 from utils import get_urls
 
@@ -24,6 +24,8 @@ class IsUp(CommandPlugin):
                 resp = dict(response)
                 resp.update(attachments=json.dumps([IsUp.is_up(url)]))
                 bot.sc.api_call('chat.postMessage', **resp)
+        else:
+            raise PluginException('No website to check! e.g. `!isup google.com`')
 
     @staticmethod
     def is_up(url):

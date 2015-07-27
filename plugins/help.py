@@ -1,4 +1,4 @@
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
 
 
 class Help(CommandPlugin):
@@ -33,8 +33,9 @@ class Help(CommandPlugin):
                     text += '*Ex:* '
                     for example in command.help_example:
                         text += '`%s` ' % example
+
             else:
-                text = '*Unknown command `%s`.*' % args
+                raise PluginException('Unknown command named `%s`!' % args)
 
         # If no args print out full command list
         else:

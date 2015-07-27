@@ -3,7 +3,7 @@
 
 import json
 from utils import valid_minecraft_username, get_player_uuid_response
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
 import logging
 
 log = logging.getLogger(__name__)
@@ -25,6 +25,8 @@ class MCName(CommandPlugin):
             parts = event['text'].split(' ')
             response.update(attachments=json.dumps([MCName.lookup_username(parts[0])]))
             bot.sc.api_call('chat.postMessage', **response)
+        else:
+            raise PluginException('No username to check! E.g. `!mcname <username>`')
 
     @staticmethod
     def lookup_username(name):

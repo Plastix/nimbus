@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
 import requests
 import json
 
@@ -40,7 +40,7 @@ class PlayingMaps(CommandPlugin):
         r = requests.get(PlayingMaps.ocn_maps_link)
 
         if r.status_code != requests.codes.ok:
-            return
+            raise PluginException('Failed to fetch currently playing Overcast Network maps!')
 
         soup = BeautifulSoup(r.text)
 

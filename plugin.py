@@ -113,3 +113,10 @@ class CommandPlugin(Plugin):
         Override this in your plugin to provide command functionality.
         """
         pass
+
+
+class PluginException(Exception):
+    """
+    Errors throw by Nimbus Plugins with a message
+    """
+    pass

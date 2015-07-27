@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """ Slack bot for Overcast Network """
+import json
 
 import sys
 import time
@@ -14,7 +15,7 @@ import os
 import inspect
 import importlib
 from slackclient import SlackClient
-from plugin import Plugin, CommandPlugin
+from plugin import Plugin, CommandPlugin, PluginException
 
 # Disable Requests's HTTPS warnings
 # We're only scraping so this is ok
@@ -82,9 +83,22 @@ class Nimbus(object):
             if 'channel' in event:
                 response.update({'channel': event['channel']})
 
-            # Copy the event in order to prevent changes from propagating to other plugins
-            # Some plugins (like CommandPlugins) decide to edit the event in-place
-            plugin.on_event(self, dict(event), response)
+            try:
+                # Copy the event in order to prevent changes from propagating to other plugins
+                # Some plugins (like CommandPlugins) decide to edit the event in-place
+                plugin.on_event(self, dict(event), response)
+
+            # Catch PluginExceptions thrown by Plugins and print out result
+            except PluginException as e:
+                attach = {
+                    'title': 'Error with plugin \'%s\'' % plugin.__class__.__name__,
+                    'text': e.message,
+                    'mrkdwn_in': ['text'],
+                    'color': 'danger',
+                    'fallback': e.message
+                }
+                response.update(attachments=json.dumps([attach]))
+                self.sc.api_call('chat.postMessage', **response)
 
     def run(self):
         """

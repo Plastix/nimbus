@@ -5,7 +5,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from utils import valid_minecraft_username, get_player_link, get_avatar_link
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
 
 
 class PlayerStats(CommandPlugin):
@@ -26,6 +26,8 @@ class PlayerStats(CommandPlugin):
             message = PlayerStats.scrape_stats(args)
             response.update(attachments=json.dumps([message]))
             bot.sc.api_call('chat.postMessage', **response)
+        else:
+            raise PluginException('No player to lookup stats! E.g. `!player <username>`')
 
     @staticmethod
     def scrape_stats(player_name):
@@ -36,22 +38,20 @@ class PlayerStats(CommandPlugin):
         """
         result = {
             'name': player_name,
-            'error': ''
         }
 
         if not valid_minecraft_username(player_name):
-            result['error'] = ':warning: Invalid player name!'
-            return PlayerStats.build_slack_attachment(result)
+            raise PluginException(':warning: Invalid player name!')
 
         r = requests.get(get_player_link(player_name))
 
         if r.status_code != requests.codes.ok:
             if r.status_code == 404:
-                result['error'] = '404 - User not found'
+                raise PluginException('404 - User not found')
             if r.status_code == 522:
-                result['error'] = '522 - Request Timed Out'
+                raise PluginException('522 - Request Timed Out')
             else:
-                result['error'] = 'Request Exception - Code: ' + str(r.status_code)
+                raise PluginException('Request Exception - Code: %s' % str(r.status_code))
         else:
             soup = BeautifulSoup(r.text)
             if soup.find("h4", text=["Account Suspended"]):
@@ -83,7 +83,7 @@ class PlayerStats(CommandPlugin):
                 if monuments_element:
                     result['monuments'] = monuments_element.findParent('h2').contents[0].strip('\n')
             else:
-                result['error'] = 'Invalid user!'
+                raise PluginException('Invalid user!')
 
         return PlayerStats.build_slack_attachment(result)
 
@@ -93,24 +93,18 @@ class PlayerStats(CommandPlugin):
         Builds the JSON attachment for the Slack message
         """
         message = {}
-        error = stats['error']
         name = stats['name']
-        message['author_name'] = name + ' (Player Stats)'
+        message['author_name'] = '%s (Player Stats)' % name
+        message['color'] = 'good'
+        message['author_link'] = get_player_link(name)
+        message['author_icon'] = get_avatar_link(name)
 
-        if error:
-            message['color'] = 'danger'
-            message['text'] = error
-        else:
-            message['color'] = 'good'
-            message['author_link'] = get_player_link(name)
-            message['author_icon'] = get_avatar_link(name)
-
-            text = 'Kills: `%s` Deaths: `%s` KD: `%s` KK: `%s`\nWools: `%s` Cores: `%s` Monuments: `%s`\nFriends: `%s` Joins: `%s` Raindrops: `%s`' % (
-                stats['kills'],
-                stats['deaths'], stats['kd_ratio'], stats['kk_ratio'], stats['wools'], stats['cores'],
-                stats['monuments'],
-                stats['friends'], stats['joins'], stats['raindrops'])
-            message['text'] = text
-            message['mrkdwn_in'] = ['text']
+        text = 'Kills: `%s` Deaths: `%s` KD: `%s` KK: `%s`\nWools: `%s` Cores: `%s` Monuments: `%s`\nFriends: `%s` Joins: `%s` Raindrops: `%s`' % (
+            stats['kills'],
+            stats['deaths'], stats['kd_ratio'], stats['kk_ratio'], stats['wools'], stats['cores'],
+            stats['monuments'],
+            stats['friends'], stats['joins'], stats['raindrops'])
+        message['text'] = text
+        message['mrkdwn_in'] = ['text']
 
         return message

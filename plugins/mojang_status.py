@@ -5,7 +5,10 @@ import json
 
 import requests
 
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class MojangStatus(CommandPlugin):
@@ -61,9 +64,9 @@ class MojangStatus(CommandPlugin):
     def get_mojang_status():
         r = requests.get(MojangStatus.mojang_status_link)
 
-        if r.status_code != 200:
-            print "Can't get Mojang Status!"
-            return
+        if r.status_code != requests.codes.ok:
+            log.warn("Can't get Mojang Status!")
+            raise PluginException('Failed to lookup Mojang Status!')
         else:
             status = r.json()
 

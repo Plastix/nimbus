@@ -1,4 +1,4 @@
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
 from utils import timestamp_to_date, get_avatar_link, get_player_uuid
 import json
 import requests
@@ -25,19 +25,21 @@ class MCNameHistory(CommandPlugin):
             message = MCNameHistory.get_name_history(args)
             response.update(attachments=json.dumps([message]))
             bot.sc.api_call('chat.postMessage', **response)
+        else:
+            raise PluginException('No username to lookup! E.g. `!mchistory <username>`')
 
     @staticmethod
     def get_name_history(username):
 
         uuid = get_player_uuid(username)
         if not uuid:
-            return
+            raise PluginException('Failed to lookup UUID for username `%s`' % username)
 
         name_history_link = 'https://api.mojang.com/user/profiles/%s/names' % uuid
         r = requests.get(name_history_link)
         if r.status_code != requests.codes.ok:
             log.warning("Can't get lookup Minecraft name history for uuid %s!" % uuid)
-            return
+            raise PluginException('Failed to get username history for UUID `%s`' % uuid)
 
         return MCNameHistory.build_slack_attachment(username, uuid, name_history_link, r.json())
 

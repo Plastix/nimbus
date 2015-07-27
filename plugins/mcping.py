@@ -1,4 +1,4 @@
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
 from utils import strip_url_formatting
 import minecraft.ping
 import json
@@ -24,6 +24,8 @@ class MCPing(CommandPlugin):
             attach = MCPing.ping_mc_server(split[0])
             response.update(attachments=json.dumps([attach]))
             bot.sc.api_call('chat.postMessage', **response)
+        else:
+            raise PluginException('No server to ping! E.g. `!mcping us.oc.tc`')
 
     @staticmethod
     def build_slack_attachment(server_address, data):
@@ -53,9 +55,6 @@ class MCPing(CommandPlugin):
         try:
             response = minecraft.ping.get_info(server_address, port)
         except:
-            return {
-                'title': 'Unable to ping Minecraft server: %s:%s!' % (server_address, port),
-                'color': 'danger'
-            }
+            raise PluginException('Unable to ping Minecraft server: %s:%s!' % (server_address, port))
 
         return MCPing.build_slack_attachment(server_address, response)

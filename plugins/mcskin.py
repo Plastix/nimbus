@@ -3,7 +3,7 @@
 
 import json
 from utils import get_player_profile
-from plugin import CommandPlugin
+from plugin import CommandPlugin, PluginException
 import logging
 import base64
 
@@ -26,13 +26,15 @@ class MCSkin(CommandPlugin):
             parts = event['text'].split(' ')
             response.update(attachments=json.dumps([MCSkin.get_skin(parts[0])]))
             bot.sc.api_call('chat.postMessage', **response)
+        else:
+            raise PluginException('No username to fetch skin for! E.g. `!mcskin <username>`')
 
     @staticmethod
     def get_skin(username):
         response = get_player_profile(username)
 
         if not response:
-            return
+            raise PluginException('Failed to fetch player profile for username `%s`' % username)
 
         # Get player skin string out of profile response
         skin_base64 = response['properties'][0]['value']
