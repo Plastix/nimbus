@@ -9,6 +9,7 @@ import time
 import logging
 import logging.config
 import signal
+from concurrent.futures import ThreadPoolExecutor
 from requests.packages import urllib3
 import yaml
 import os
@@ -45,6 +46,7 @@ class Nimbus(object):
         self.command_prefix = config.get('command_prefix', '!')
         self.debug_mode = config.get('debug_mode', False)
         self.start_time = time.time()
+        self.executor = ThreadPoolExecutor(max_workers=config.get('future_workers', 15))
         self.plugins = []
 
         self.token = config.get('token')
@@ -83,22 +85,36 @@ class Nimbus(object):
             if 'channel' in event:
                 response.update({'channel': event['channel']})
 
-            try:
-                # Copy the event in order to prevent changes from propagating to other plugins
-                # Some plugins (like CommandPlugins) decide to edit the event in-place
-                plugin.on_event(self, dict(event), response)
+            future = self.executor.submit(plugin.on_event, self, dict(event), response)
+            self.add_future_callback(future, plugin, response)
 
-            # Catch PluginExceptions thrown by Plugins and print out result
-            except PluginException as e:
-                attach = {
-                    'title': 'Error with plugin \'%s\'' % plugin.__class__.__name__,
-                    'text': e.message,
-                    'mrkdwn_in': ['text'],
-                    'color': 'danger',
-                    'fallback': e.message
-                }
-                response.update(attachments=json.dumps([attach]))
-                self.sc.api_call('chat.postMessage', **response)
+    def add_future_callback(self, future, plugin, response):
+        """
+        Wrapper to create a callback for the future object
+        """
+
+        def post_error_response(future):
+            """
+            Called to post the exception from the future back to the channel
+            """
+            e = future.exception()
+            if e:
+                # Post response if caught error is a PluginException
+                if isinstance(e, PluginException):
+                    attach = {
+                        'title': 'Error with plugin \'%s\'' % plugin.__class__.__name__,
+                        'text': e.message,
+                        'mrkdwn_in': ['text'],
+                        'color': 'danger',
+                        'fallback': e.message
+                    }
+                    response.update(attachments=json.dumps([attach]))
+                    self.sc.api_call('chat.postMessage', **response)
+                else:
+                    # Else log exception
+                    log.exception(e)
+
+        future.add_done_callback(post_error_response)
 
     def run(self):
         """
