@@ -3,3 +3,4 @@ PyYAML==3.11
 requests==2.7.0
 slackclient==0.15
 futures==3.0.3
+pytz==2015.4
