@@ -12,7 +12,7 @@ class TimeZone(CommandPlugin):
     def __init__(self):
         CommandPlugin.__init__(self)
         self.triggers = ['timezone', 'tz']
-        
+
         self.timezones = set()
 
     def on_command(self, bot, event, response):
@@ -31,7 +31,7 @@ class TimeZone(CommandPlugin):
         for tz in self.timezones:
             localDatetime = utcmoment.astimezone(pytz.timezone(tz))
             local.append(localDatetime.strftime(localFormat))
-        response['text'] += ': '.join(local)
+        response['text'] += ', '.join(local)
 
         bot.sc.api_call('chat.postMessage', **response)
 
