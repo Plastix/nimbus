@@ -33,7 +33,7 @@ class CoinFlip(CommandPlugin):
 
                 rand_bits = bin(random.getrandbits(tosses))[2:]
                 heads = rand_bits.count('0')
-                tails = rand_bits.count('1')
+                tails = tosses - heads
                 response['text'] = '*_%s_* coins are flipped and the result is *_%s Heads_* and *_%s Tails_*!' % (
                     tosses, heads, tails)
             except ValueError:
