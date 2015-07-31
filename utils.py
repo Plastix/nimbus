@@ -1,8 +1,10 @@
 from datetime import date
 import json
+import os
 import re
 import requests
 import logging
+import subprocess
 
 log = logging.getLogger(__name__)
 
@@ -136,3 +138,10 @@ def get_player_profile(username):
         return
 
     return r.json()
+
+
+def is_git_directory(path='.'):
+    """
+    Checks if the given path is a git directory. Defaults to the current working directory
+    """
+    return subprocess.call(['git', '-C', path, 'status'], stderr=subprocess.STDOUT, stdout=open(os.devnull, 'w')) == 0
