@@ -75,6 +75,9 @@ class CommandPlugin(Plugin):
         # Direct message the sender of the message back the response
         self.dm_sender = False
 
+        # Only allow Slack admins and owners to run this command
+        self.admin_command = False
+
     def on_event(self, bot, event, response):
         """
         Called on 'message' events
@@ -101,7 +104,22 @@ class CommandPlugin(Plugin):
                     # For some reason we have to do this otherwise the message will come from
                     # Slack's slackbot instead of our bot
                     result = json.loads(bot.sc.api_call('im.open', **{'user': event['user']}))
-                    response['channel'] = result['channel']['id']
+                    if result.get('ok'):
+                        response['channel'] = result['channel']['id']
+                    # Fallback for when IM open call fails. This will send through Slack's Slackbot
+                    # Which isn't ideal but it works and won't spam a specific channel
+                    else:
+                        response['channel'] = event['user']
+
+                if self.admin_command:
+                    user = json.loads(bot.sc.api_call('users.info', **{'user': event['user']}))
+                    if user.get('ok'):
+                        user = user['user']
+                        if not user.get('is_admin') and not user.get('is_owner'):
+                            raise PluginException('No Permission to run this command!')
+                    # Fallback when user info fails. We don't want a non-admin user running an admin bot command
+                    else:
+                        raise PluginException('Failed to lookup user permissions. Try command again.')
 
                 log.info('%s invoked command \'%s\' with arguments \'%s\'' % (event['user'], command, args))
                 self.on_command(bot, event, response)
