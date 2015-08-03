@@ -19,4 +19,4 @@ class Echo(CommandPlugin):
             response['text'] = args
             bot.sc.api_call('chat.postMessage', **response)
         else:
-            raise PluginException('Missing arguments. E.g. `!help <text>`')
+            raise PluginException('Missing arguments. E.g. `!echo <text>`')
