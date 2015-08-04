@@ -11,6 +11,7 @@ import logging.config
 import signal
 from concurrent.futures import ThreadPoolExecutor
 from requests.packages import urllib3
+from slackclient._client import SlackNotConnected
 import yaml
 import os
 import inspect
@@ -122,18 +123,27 @@ class Nimbus(object):
         """
         log.info("Starting bot loop...")
         while True:
-            events = self.sc.rtm_read()
-            for event in events:
-                # Don't listen to the bot's own messages or other bot messages
-                if event.get('subtype') == 'bot_message':
-                    continue
+            try:
+                events = self.sc.rtm_read()
+                for event in events:
+                    # Don't listen to the bot's own messages or other bot messages
+                    if event.get('subtype') == 'bot_message':
+                        continue
 
-                # Don't listen to hidden events such as 'message_changed' or 'message_deleted'
-                # Some of these message subtypes don't have text which we don't want to parse
-                if event.get('hidden'):
-                    continue
+                    # Don't listen to hidden events such as 'message_changed' or 'message_deleted'
+                    # Some of these message subtypes don't have text which we don't want to parse
+                    if event.get('hidden'):
+                        continue
 
-                self.process_event(event)
+                    self.process_event(event)
+            # Thrown by SlackClient.rtm_read()
+            except SlackNotConnected:
+                log.warning('Lost connection with Slack! Attempting to reconnect...')
+                self.sc = SlackClient(self.token)
+                if not self.sc.rtm_connect():
+                    log.warning("Can't connect to Slack! Will try again on next polling interval.")
+                else:
+                    log.info('Reconnected with Slack!')
 
             time.sleep(self.polling_interval)
 
