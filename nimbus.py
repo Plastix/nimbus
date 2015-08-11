@@ -145,8 +145,10 @@ class Nimbus(object):
         try:
             self.plugins.append(plugin(self))
             log.info('Successfully registered plugin \'%s\'' % plugin.__name__)
+            return True
         except:
             log.exception('Error loading plugin %s! Skipping...' % plugin.__name__)
+            return False
 
     def load_plugins(self):
         """
@@ -169,8 +171,8 @@ class Nimbus(object):
 
                 # Register all found plugin classes
                 for name, klass in classes:
-                    self.register_plugin(klass)
-                    num_plugins += 1
+                    if self.register_plugin(klass):
+                        num_plugins += 1
 
         log.info('Loaded %s plugins!' % num_plugins)
 
