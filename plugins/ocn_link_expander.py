@@ -73,7 +73,7 @@ class ForumScraper(OCNScraper):
 
             author = post.a['href'].strip('/')
             d['author_name'] = author
-            d['author_link'] = 'https://www.oc.tc/' + author
+            d['author_link'] = 'https://oc.tc/' + author
             d['author_icon'] = post.img['src'].replace('32@2x.png', '16@2x.png')
 
             text = post.find('div', {'class': 'converted post-content'}).contents[1].find(text=True)
