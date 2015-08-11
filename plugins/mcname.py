@@ -12,19 +12,19 @@ log = logging.getLogger(__name__)
 class MCName(CommandPlugin):
     """Checks if a Minecraft username is registered"""
 
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['mcname']
         self.short_help = 'Checks whether a Minecraft username is available'
         self.help = self.short_help
         self.help_example = ['!mcname Plastix', '!mcname Apple']
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         args = event['text']
         if args:
             parts = event['text'].split(' ')
             response.update(attachments=json.dumps([MCName.lookup_username(parts[0])]))
-            bot.sc.api_call('chat.postMessage', **response)
+            self.bot.sc.api_call('chat.postMessage', **response)
         else:
             raise PluginException('No username to check! E.g. `!mcname <username>`')
 

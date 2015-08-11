@@ -85,7 +85,7 @@ class Nimbus(object):
             if 'channel' in event:
                 response.update({'channel': event['channel']})
 
-            future = self.executor.submit(plugin.on_event, self, dict(event), response)
+            future = self.executor.submit(plugin.on_event, dict(event), response)
             self.add_future_callback(future, plugin, response)
 
     def add_future_callback(self, future, plugin, response):
@@ -142,7 +142,7 @@ class Nimbus(object):
         Registers the specified plugin with the bot
         """
         # Instantiate class and add to plugins list
-        self.plugins.append(plugin())
+        self.plugins.append(plugin(self))
         log.info('Successfully registered plugin \'%s\'' % plugin.__name__)
 
     def load_plugins(self):

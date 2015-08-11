@@ -13,19 +13,19 @@ log = logging.getLogger(__name__)
 class MCSkin(CommandPlugin):
     """Gets the skin for a Minecraft player"""
 
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['mcskin', 'skin']
         self.short_help = 'Gets the skin for a Minecraft player'
         self.help = self.short_help
         self.help_example = ['!mcskin Plastix', '!skin Apple']
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         args = event['text']
         if args:
             parts = event['text'].split(' ')
             response.update(attachments=json.dumps([MCSkin.get_skin(parts[0])]))
-            bot.sc.api_call('chat.postMessage', **response)
+            self.bot.sc.api_call('chat.postMessage', **response)
         else:
             raise PluginException('No username to fetch skin for! E.g. `!mcskin <username>`')
 

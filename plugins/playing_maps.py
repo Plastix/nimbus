@@ -11,8 +11,8 @@ class PlayingMaps(CommandPlugin):
 
     ocn_maps_link = 'https://oc.tc/maps'
 
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['playingmaps']
         self.short_help = 'Prints out currently playing maps on the Overcast Network'
         self.help = self.short_help
@@ -65,6 +65,6 @@ class PlayingMaps(CommandPlugin):
         # Return slack attachment with parsed data
         return PlayingMaps.build_slack_attachment(data)
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         response.update(attachments=json.dumps([PlayingMaps.parse_maps_list()]))
-        bot.sc.api_call('chat.postMessage', **response)
+        self.bot.sc.api_call('chat.postMessage', **response)

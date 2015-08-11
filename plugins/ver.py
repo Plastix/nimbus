@@ -5,21 +5,21 @@ from utils import is_git_directory
 
 
 class Ver(CommandPlugin):
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['ver', 'version', 'about']
         self.short_help = 'Prints out version information about the bot'
         self.help = self.short_help
         self.help_example = ['!ver']
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         ver = version
         if is_git_directory():
             ver = '%s (%s)' % (version, Ver.get_git_revision_short_hash())
 
         response['text'] = '_Nimbus version_ `%s`\n%s\n' % (ver, url)
         response['mrkdwn_in'] = ['text']
-        bot.sc.api_call('chat.postMessage', **response)
+        self.bot.sc.api_call('chat.postMessage', **response)
 
     @staticmethod
     def get_git_revision_short_hash():

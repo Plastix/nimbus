@@ -13,19 +13,19 @@ class PlayerStats(CommandPlugin):
     Scrapes Overcast Network player stats
     """
 
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['player', 'stats']
         self.short_help = 'Lookup Overcast Network player stats'
         self.help = self.short_help
         self.help_example = ['!player Plastix', '!player bcbwilla']
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         args = event['text']
         if args:
             message = PlayerStats.scrape_stats(args)
             response.update(attachments=json.dumps([message]))
-            bot.sc.api_call('chat.postMessage', **response)
+            self.bot.sc.api_call('chat.postMessage', **response)
         else:
             raise PluginException('No player to lookup stats! E.g. `!player <username>`')
 

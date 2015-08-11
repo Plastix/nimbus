@@ -20,7 +20,10 @@ class Plugin(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, bot):
+        # Nimbus bot instance
+        self.bot = bot
+
         # Shows up on the '!help' list
         self.short_help = ''
 
@@ -36,12 +39,12 @@ class Plugin(object):
         # Generic Plugins don't show up in '!help'
         self.hidden = True
 
-    def on_event(self, bot, event, response):
+    def on_event(self, event, response):
         """
         Called when a matching slack event is thrown
 
         Do what you want with the event here.
-        Post a reply: bot.sc.api_call('chat.postMessage', **response)
+        Post a reply: self.bot.sc.api_call('chat.postMessage', **response)
         """
         pass
 
@@ -64,8 +67,8 @@ class CommandPlugin(Plugin):
 
     """
 
-    def __init__(self):
-        Plugin.__init__(self)
+    def __init__(self, bot):
+        Plugin.__init__(self, bot)
         # Triggers to match in order to call on_event()
         self.triggers = []
 
@@ -78,13 +81,13 @@ class CommandPlugin(Plugin):
         # Only allow Slack admins and owners to run this command
         self.admin_command = False
 
-    def on_event(self, bot, event, response):
+    def on_event(self, event, response):
         """
         Called on 'message' events
         """
         # Strip command prefix and split at first space
-        if event['text'].startswith(bot.command_prefix):
-            split = event['text'][len(bot.command_prefix):].split(' ', 1)
+        if event['text'].startswith(self.bot.command_prefix):
+            split = event['text'][len(self.bot.command_prefix):].split(' ', 1)
 
             # If command matches a trigger, parse arguments and continue
             command = split[0]
@@ -103,7 +106,7 @@ class CommandPlugin(Plugin):
                     # Open a IM channel
                     # For some reason we have to do this otherwise the message will come from
                     # Slack's slackbot instead of our bot
-                    result = json.loads(bot.sc.api_call('im.open', **{'user': event['user']}))
+                    result = json.loads(self.bot.sc.api_call('im.open', **{'user': event['user']}))
                     if result.get('ok'):
                         response['channel'] = result['channel']['id']
                     # Fallback for when IM open call fails. This will send through Slack's Slackbot
@@ -112,7 +115,7 @@ class CommandPlugin(Plugin):
                         response['channel'] = event['user']
 
                 if self.admin_command:
-                    user = json.loads(bot.sc.api_call('users.info', **{'user': event['user']}))
+                    user = json.loads(self.bot.sc.api_call('users.info', **{'user': event['user']}))
                     if user.get('ok'):
                         user = user['user']
                         if not user.get('is_admin') and not user.get('is_owner'):
@@ -122,9 +125,9 @@ class CommandPlugin(Plugin):
                         raise PluginException('Failed to lookup user permissions. Try command again.')
 
                 log.info('%s invoked command \'%s\' with arguments \'%s\'' % (event['user'], command, args))
-                self.on_command(bot, event, response)
+                self.on_command(event, response)
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         """
         Called when a message event matches the command triggers
 

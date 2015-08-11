@@ -7,13 +7,13 @@ class Welcome(Plugin):
     Welcomes new members when they join the Slack team
     """
 
-    def __init__(self):
-        Plugin.__init__(self)
+    def __init__(self, bot):
+        Plugin.__init__(self, bot)
         self.event_type = 'team_join'
 
-    def on_event(self, bot, event, response):
+    def on_event(self, event, response):
         # Get list of all channels (don't include archived channels)
-        channel_response = bot.sc.api_call('channels.list', **{'exclude_archived': 1})
+        channel_response = self.bot.sc.api_call('channels.list', **{'exclude_archived': 1})
         # Convert string response to JSON
         channel_response = json.loads(channel_response)
 
@@ -30,4 +30,4 @@ class Welcome(Plugin):
             response['channel'] = general_channel
             response['link_names'] = 1  # Enables linking of names
             response['text'] = 'Welcome to the Slack team <@%s>!' % user
-            bot.sc.api_call('chat.postMessage', **response)
+            self.bot.sc.api_call('chat.postMessage', **response)

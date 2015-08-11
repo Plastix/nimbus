@@ -7,7 +7,7 @@ class React(Plugin):
     Adds Slack emoji reactions to messages based on certain keywords
     """
 
-    def on_event(self, bot, event, response):
+    def on_event(self, event, response):
         text = event['text']
         response.update(timestamp=event['ts'])
 
@@ -19,4 +19,4 @@ class React(Plugin):
 
         # Post reaction if we have an emoji set
         if response.get('name'):
-            bot.sc.api_call('reactions.add', **response)
+            self.bot.sc.api_call('reactions.add', **response)

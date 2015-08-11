@@ -145,7 +145,7 @@ class OCNLinkExpander(Plugin):
     Expands oc.tc links
     """
 
-    def on_event(self, bot, event, response):
+    def on_event(self, event, response):
         if not event.get('attachments'):
             text = event['text']
             if 'oc.tc/' in text:
@@ -155,4 +155,4 @@ class OCNLinkExpander(Plugin):
                         # Copy response because each URL is its own message
                         resp = dict(response)
                         resp.update(attachments=json.dumps([a]))
-                        bot.sc.api_call('chat.postMessage', **resp)
+                        self.bot.sc.api_call('chat.postMessage', **resp)

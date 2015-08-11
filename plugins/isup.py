@@ -9,21 +9,21 @@ class IsUp(CommandPlugin):
     Command for checking if a website is offline
     """
 
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['isup', 'isonline']
         self.short_help = 'Pings a website to check if it is online'
         self.help = self.short_help
         self.help_example = ['!isup google.com', '!isup oc.tc']
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         text = event['text']
         if text:
             urls = get_urls(text)
             for url in urls:
                 resp = dict(response)
                 resp.update(attachments=json.dumps([IsUp.is_up(url)]))
-                bot.sc.api_call('chat.postMessage', **resp)
+                self.bot.sc.api_call('chat.postMessage', **resp)
         else:
             raise PluginException('No website to check! e.g. `!isup google.com`')
 

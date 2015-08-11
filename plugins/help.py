@@ -6,19 +6,19 @@ class Help(CommandPlugin):
     Command for viewing other bot commands
     """
 
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['help', 'h']
         self.help = 'Lookup information about bot commands'
         self.help_example = ['!help', '!help <command>']
         self.hidden = True
         self.dm_sender = True
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         args = event['text']
         # If argument print out extended help page about command (if there is one)
         if args:
-            command = bot.get_command(args)
+            command = self.bot.get_command(args)
             if command:
                 text = '*Help for _%s_:*\n' % args
                 if command.help:
@@ -40,10 +40,10 @@ class Help(CommandPlugin):
         # If no args print out full command list
         else:
             text = '*Available Commands:* (Type `!help <command>` for more info about a certain command).\n'
-            for plugin in sorted(list(bot.plugins)):
+            for plugin in sorted(list(self.bot.plugins)):
                 if isinstance(plugin, CommandPlugin) and not plugin.hidden:
-                    text += '`%s%s` - %s\n' % (bot.command_prefix, plugin.triggers[0], plugin.short_help)
+                    text += '`%s%s` - %s\n' % (self.bot.command_prefix, plugin.triggers[0], plugin.short_help)
 
         response['text'] = text
         response['mrkdwn_in'] = ['text']
-        bot.sc.api_call('chat.postMessage', **response)
+        self.bot.sc.api_call('chat.postMessage', **response)

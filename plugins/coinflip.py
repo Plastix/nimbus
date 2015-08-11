@@ -8,14 +8,14 @@ class CoinFlip(CommandPlugin):
     """
     max_coin_flips = 1000000
 
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['coin', 'coinflip']
         self.short_help = 'Flip a coin'
         self.help = 'Flip a coin or number of coins'
         self.help_example = ['!coin', '!coinflip 5']
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         args = event['text']
 
         if not args:
@@ -40,4 +40,4 @@ class CoinFlip(CommandPlugin):
                 raise PluginException('Invalid argument! Specify a *number* of coins to flip. E.g. `!coin 5`')
 
         response['mrkdwn_in'] = ['text']
-        bot.sc.api_call('chat.postMessage', **response)
+        self.bot.sc.api_call('chat.postMessage', **response)

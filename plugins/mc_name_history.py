@@ -12,19 +12,19 @@ class MCNameHistory(CommandPlugin):
     Gets the username history for a Minecraft user
     """
 
-    def __init__(self):
-        CommandPlugin.__init__(self)
+    def __init__(self, bot):
+        CommandPlugin.__init__(self, bot)
         self.triggers = ['mchistory', 'mchis']
         self.short_help = 'Prints out username history of a Minecraft username'
         self.help = self.short_help
         self.help_example = ['!mchistory Apple', '!mchis Martin']
 
-    def on_command(self, bot, event, response):
+    def on_command(self, event, response):
         args = event['text']
         if args:
             message = MCNameHistory.get_name_history(args)
             response.update(attachments=json.dumps([message]))
-            bot.sc.api_call('chat.postMessage', **response)
+            self.bot.sc.api_call('chat.postMessage', **response)
         else:
             raise PluginException('No username to lookup! E.g. `!mchistory <username>`')
 
