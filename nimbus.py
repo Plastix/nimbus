@@ -142,8 +142,11 @@ class Nimbus(object):
         Registers the specified plugin with the bot
         """
         # Instantiate class and add to plugins list
-        self.plugins.append(plugin(self))
-        log.info('Successfully registered plugin \'%s\'' % plugin.__name__)
+        try:
+            self.plugins.append(plugin(self))
+            log.info('Successfully registered plugin \'%s\'' % plugin.__name__)
+        except:
+            log.exception('Error loading plugin %s! Skipping...' % plugin.__name__)
 
     def load_plugins(self):
         """
