@@ -58,6 +58,12 @@ class Nimbus(object):
             raise SystemExit("Can't connect to Slack.")
         log.info('Successfully authenticated with Slack!')
 
+        self.plugin_directory = config.get('plugin_directory', 'plugins')
+        if not os.path.isdir(self.plugin_directory):
+            raise SystemExit('The specified plugin directory is not a directory!')
+        if not os.path.exists(self.plugin_directory):
+            raise SystemExit('The specified plugin directory does not exist!')
+
         if self.debug_mode:
             log.info('Debug mode is enabled!')
 
@@ -144,7 +150,7 @@ class Nimbus(object):
         # Instantiate class and add to plugins list
         try:
             self.plugins.append(plugin(self))
-            log.info('Successfully registered plugin \'%s\'' % plugin.__name__)
+            log.info('Successfully loaded plugin \'%s\'' % plugin.__name__)
             return True
         except:
             log.exception('Error loading plugin %s! Skipping...' % plugin.__name__)
@@ -152,16 +158,15 @@ class Nimbus(object):
 
     def load_plugins(self):
         """
-        Loads all plugins from the /plugins/ directory
+        Loads all plugins from the specified plugin directory
         """
-        log.info('Registering plugins...')
-        plugin_directory = 'plugins'  # TODO Config setting?
+        log.info('Loading plugins from directory \'%s\'...' % self.plugin_directory)
         num_plugins = 0
         # Loop through files in plugin directory
-        for f in os.listdir(plugin_directory):
+        for f in os.listdir(self.plugin_directory):
             module_name, extension = os.path.splitext(f)
             if extension == ".py":
-                module_path = '%s.%s' % (plugin_directory, module_name)
+                module_path = '%s.%s' % (self.plugin_directory, module_name)
                 imported = importlib.import_module(module_path)
 
                 # Find all the Plugin classes in the module

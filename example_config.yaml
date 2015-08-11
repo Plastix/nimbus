@@ -8,3 +8,4 @@ polling_interval: 1       # how often (in seconds) to check for new events
 command_prefix: '!'       # commands are prefixed with this character (ie !help)
 debug_mode: False         # If true, logs all processed events
 future_workers: 15        # Number of workers for concurrent processing of commands
+plugin_directory: plugins # Directory to load bot plugins from
