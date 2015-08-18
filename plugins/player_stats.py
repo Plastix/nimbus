@@ -35,6 +35,8 @@ class PlayerStats(CommandPlugin):
         Scrapes Overcast Network Player Stats
         Based on code by @McSpider
         https://github.com/McSpider/Overcast-IRC-Bot/blob/master/_functions/player.py
+
+        Updated to work with new Overcast Network ranked profiles
         """
         result = {
             'name': player_name,
@@ -58,34 +60,37 @@ class PlayerStats(CommandPlugin):
                 result['error'] = 'User Account Suspended'
             elif soup.find("p", text=["Page Exploded"]):
                 result['error'] = '404 - User not found'
-            elif soup.find("small", text=["server joins"]):
-                result['kills'] = soup.find("small", text=["kills"]).findParent('h2').contents[0].strip('\n')
-                result['deaths'] = soup.find("small", text=["deaths"]).findParent('h2').contents[0].strip('\n')
-                result['friends'] = soup.find("small", text=["friends"]).findParent('h2').contents[0].strip('\n')
-                result['kd_ratio'] = soup.find("small", text=["kd ratio"]).findParent('h2').contents[0].strip('\n')
-                result['kk_ratio'] = soup.find("small", text=["kk ratio"]).findParent('h2').contents[0].strip('\n')
-                result['joins'] = soup.find("small", text=["server joins"]).findParent('h2').contents[0].strip('\n')
-                result['raindrops'] = soup.find("small", text=["raindrops"]).findParent('h2').contents[0].strip('\n')
+            elif soup.find("div", {'class': 'stats'}):
+                # Check if user is unrated
+                if soup.find('div', {'class': 'unqualified'}):
+                    result['rank'] = 'N/A'
+                    result['rating'] = 'N/A'
+                # Else get their rank and rating
+                else:
+                    rank = soup.find('div', text=['rank']).findNext('a').contents
+                    result['rank'] = '%s%s' % (rank[0].strip(), rank[1].text.strip())
+                    result['rating'] = soup.find('div', text=['rating']).findNext('div').text.strip()
 
-                result['wools'] = "0"
-                result['cores'] = "0"
-                result['monuments'] = "0"
+                # Get kills, deaths, and calculate kd ratio
+                result['kills'] = soup.find('div', text=['kills']).findNext('div').text.strip()
+                result['deaths'] = soup.find('div', text=['deaths']).findNext('div').text.strip()
+                result['kd_ratio'] = '%.2f' % (float(result['kills']) / max(1, float(result['deaths'])))
 
-                wools_element = soup.find("small", text=["wools placed"])
-                if wools_element:
-                    result['wools'] = wools_element.findParent('h2').contents[0].strip('\n')
-
-                cores_element = soup.find("small", text=["cores leaked"])
-                if cores_element:
-                    result['cores'] = cores_element.findParent('h2').contents[0].strip('\n')
-
-                monuments_element = soup.find("small", text=["monuments destroyed"])
-                if monuments_element:
-                    result['monuments'] = monuments_element.findParent('h2').contents[0].strip('\n')
+                # Get objectives if there are any
+                if soup.find('p', text=['No objectives completed']):
+                    result['wools'] = 0
+                    result['cores'] = 0
+                    result['monuments'] = 0
+                else:
+                    objectives = soup.find('div', {'id': 'objectives'})
+                    result['wools'] = objectives.find('small', text=['wools placed']).parent.contents[0].strip()
+                    result['monuments'] = objectives.find('small', text=['monuments destroyed']).parent.contents[
+                        0].strip()
+                    result['cores'] = objectives.find('small', text=['cores leaked']).parent.contents[0].strip()
             else:
                 raise PluginException('Invalid user!')
 
-        return PlayerStats.build_slack_attachment(result)
+            return PlayerStats.build_slack_attachment(result)
 
     @staticmethod
     def build_slack_attachment(stats):
@@ -99,11 +104,10 @@ class PlayerStats(CommandPlugin):
         message['author_link'] = get_player_link(name)
         message['author_icon'] = get_avatar_link(name)
 
-        text = 'Kills: `%s` Deaths: `%s` KD: `%s` KK: `%s`\nWools: `%s` Cores: `%s` Monuments: `%s`\nFriends: `%s` Joins: `%s` Raindrops: `%s`' % (
-            stats['kills'],
-            stats['deaths'], stats['kd_ratio'], stats['kk_ratio'], stats['wools'], stats['cores'],
-            stats['monuments'],
-            stats['friends'], stats['joins'], stats['raindrops'])
+        text = 'Rank: `%s` Rating: `%s`\nKills: `%s` Deaths: `%s` KD: `%s`\nWools: `%s` Cores: `%s` Monuments: `%s`' % (
+            stats['rank'],
+            stats['rating'], stats['kills'],
+            stats['deaths'], stats['kd_ratio'], stats['wools'], stats['cores'], stats['monuments'])
         message['text'] = text
         message['mrkdwn_in'] = ['text']
 
