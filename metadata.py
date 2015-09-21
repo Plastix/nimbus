@@ -5,4 +5,4 @@ Information describing the project.
 """
 
 version = '0.5.0'
-url = 'https://github.com/bcbwilla/nimbus'
+url = 'https://github.com/Plastix/nimbus'
