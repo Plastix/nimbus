@@ -72,8 +72,8 @@ class PlayerStats(CommandPlugin):
                     result['rating'] = soup.find('div', text=['rating']).findNext('div').text.strip()
 
                 # Get kills, deaths, and calculate kd ratio
-                result['kills'] = soup.find('div', text=['kills']).findNext('div').text.strip()
-                result['deaths'] = soup.find('div', text=['deaths']).findNext('div').text.strip()
+                result['kills'] = soup.find('div', text=['kills']).findNext('div')['title'].split(' ')[0].strip()
+                result['deaths'] = soup.find('div', text=['deaths']).findNext('div')['title'].split(' ')[0].strip()
                 result['kd_ratio'] = '%.2f' % (float(result['kills']) / max(1, float(result['deaths'])))
 
                 # Get objectives if there are any
